@@ -1,5 +1,5 @@
 ## About:
-This is the program used for the final project titled "Simulation of Quantum Computer Using GPGPU for The Case of Quantum Fourier Transform". Originally written in NVIDIA SDK ([here](https://www.eecg.utoronto.ca/~moshovos/CUDA08/arx/QFT_report.pdf)), ported to CUDA.
+This is the program used for the Undergraduate Disertation titled "Simulation of Quantum Computer Using GPGPU for The Case of Quantum Fourier Transform". Originally written in NVIDIA SDK ([here](https://www.eecg.utoronto.ca/~moshovos/CUDA08/arx/QFT_report.pdf)), ported to CUDA and modified.
 
 ## Prerequisites:
 CUDA 10.0.0 or later
