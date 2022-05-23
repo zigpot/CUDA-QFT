@@ -11,6 +11,7 @@ Self-explaining title
 - [ ] Directories restructurization @zigp0t 2022-05-23
 - [ ] Code refactoring, if necessary @zigp0t 2022-05-23
 - [ ] Libquantum hash table @zigp0t 2022-05-23
+- [ ] Delete qft executable output @zigp0t 2022-05-23
 
 
 ### Completed Column ✓
