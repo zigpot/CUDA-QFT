@@ -1,10 +1,10 @@
 ## About:
-This is the program used for the Undergraduate Disertation titled "Simulation of Quantum Computer Using GPGPU for The Case of Quantum Fourier Transform". Originally written in NVIDIA SDK ([here](https://www.eecg.utoronto.ca/~moshovos/CUDA08/arx/QFT_report.pdf)), ported to CUDA and modified.
+This is the program used for my bachelor's dissertation titled "Simulation of Quantum Computer Using GPGPU for The Case of Quantum Fourier Transform". Originally written in NVIDIA SDK ([here](https://www.eecg.utoronto.ca/~moshovos/CUDA08/arx/QFT_report.pdf)), ported to CUDA and modified.
 
 ## Prerequisites:
 CUDA 10.0.0 or later
 
-[libquantum 1.1.1](http://www.libquantum.de/files/libquantum-1.1.1.tar.gz)
+[libquantum 1.1.1](http://www.libquantum.de/files/libquantum-1.1.1.tar.gz) (don't forget to link the newly installed library, e.g. sudo ldconfig)
 
 ## Compilation:
 	nvcc -o program.out -Xcompiler -fopenmp files here -lquantum
