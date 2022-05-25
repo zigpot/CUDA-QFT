@@ -13,7 +13,7 @@ Self-explaining title
 - [ ] Makefile simplifying @zigp0t 2022-05-23
 
 
-### Completed Column ✓
+### Completed ✓
 - [x] Delete qft executable output
 - [x] Make a Makefile to simplify installation
 
