@@ -5,14 +5,6 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
-/*
- * Ini adalah file header untuk fungsi-fungsi legacy
- * 'peninggalan' NVidia SDK, seperti CUDA_SAFE_CALL
- *  atau CUT_CHECK_ERROR. Sumber:
- * https://github.com/treecode/directSPH/blob/master/cutil.h
-*/
-
-
 //Defines taken from the cutil header files
 //
 
