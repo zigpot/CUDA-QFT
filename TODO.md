@@ -1,5 +1,4 @@
 # Quantum Computer Simulation in CUDA
-Self-explaining title
 
 ### Todos
 - [ ] Reevaluating trig identity @zigp0t 2021-07-31
@@ -10,10 +9,11 @@ Self-explaining title
 - [ ] Directories restructurization @zigp0t 2022-05-23
 - [ ] Code refactoring, if necessary @zigp0t 2022-05-23
 - [ ] Libquantum hash table @zigp0t 2022-05-23
-- [ ] Makefile simplifying @zigp0t 2022-05-23
+- [ ] Apply systemized and clean coding standard such as SOLID and OOP if possible @zigp0t 2022-06-19
 
 
 ### Completed ✓
+- [x] Makefile simplifying @zigp0t 2022-05-23
 - [x] Delete qft executable output
 - [x] Make a Makefile to simplify installation
 
