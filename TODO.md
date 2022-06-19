@@ -10,6 +10,7 @@
 - [ ] Code refactoring, if necessary @zigp0t 2022-05-23
 - [ ] Libquantum hash table @zigp0t 2022-05-23
 - [ ] Apply systemized and clean coding standard such as SOLID and OOP if possible @zigp0t 2022-06-19
+- [ ] CMAKE integration if possible @zigp0t 2022-06-19
 
 
 ### Completed ✓
