@@ -8,21 +8,21 @@
 #define BLOCKS 32768
 
 
-// Menggunakan shared memory untuk target bawah (0 hingga 8)
+// Uses shared memory for the lower targets (0to8)
 
 
 __device__ static void qft_gpu_v5_single_lower_state(int tgt, unsigned long i, int width, unsigned long block_base, cuDoubleComplex *sh_v){
 	unsigned long tgt_bit = (1ul << tgt);
 	unsigned long i_other = i^tgt_bit;
 
-	// Separuh warp pertama mendapat koefisien dari shared memory.
+    // First half warp gets coefficients from shared memory.
 	cuDoubleComplex v_i, v_iother;
 	if ((i % 16) >= 8) {
 		v_i = sh_v[i - block_base];
 		v_iother = sh_v[i_other - block_base];
 	}
 
-	// Hitung fase.
+    // Calculate the phase.
 	unsigned long phase_coef = 1ul;
 	unsigned long normal = (1ul << (width - tgt - 1));
 
@@ -36,13 +36,13 @@ __device__ static void qft_gpu_v5_single_lower_state(int tgt, unsigned long i, i
 	}
 	phase_coef = phase_coef ^ (normal);
 
-	// Separuh warp kedua mendapat koefisien dari shared memory.
+    // Second half warp gets coefficients from shared memory.
 	if ((i % 16) < 8) {
 		v_iother = sh_v[i_other-block_base];
 		v_i = sh_v[i-block_base];
 	}
 
-	// Selesai menghitung gerbang.
+    // Finish calculating the gate.
 	float phi = float(phase_coef) * float(M_PI) / float(normal);
 	float c = cosf(phi);
 	float s = sqrtf(1.0f-c*c);
@@ -69,8 +69,8 @@ __device__ static void qft_gpu_v5_single_lower_state(int tgt, unsigned long i, i
 }
 
 
-// Mengaplikasikan geser fase dan transformasi Hadamard untuk qubit 'tgt' dan state 'i'.
-// Catatan: HANYA dipanggil dengan ((i & tgt_bit) == 1)
+// This applies the phase shifts and Hadamard transform for qubit 'tgt' and state 'i'.
+// Note: This should ONLY be called with ((i & tgt_bit) == 1)
 __device__ static void qft_gpu_v5_single_state(int tgt, unsigned long i, int width, cuDoubleComplex *v){
 	unsigned long phase_coef = 1ul;
 	unsigned long tgt_bit = (1ul << tgt);
@@ -83,7 +83,7 @@ __device__ static void qft_gpu_v5_single_state(int tgt, unsigned long i, int wid
 	}
 */
 
-	// Catatan: Geser fase (dengan target sama) commute.
+    // Note: Phase shifts (with the same target) commute.
 	unsigned long ctl_bit = (1ul << tgt);
 	for (int ctl=tgt+1; ctl<width; ctl++) {
 		ctl_bit = (ctl_bit << 1);
@@ -104,7 +104,7 @@ __device__ static void qft_gpu_v5_single_state(int tgt, unsigned long i, int wid
 	cuDoubleComplex v_iother = v[i_other];
 	v_i = cuCmul(v_i, phase);
 
-	cuDoubleComplex ai, aother;	// koefisien i dan (i^tgt_bit)
+	cuDoubleComplex ai, aother;    // coefficients i and (i^tgt_bit)
 
 	cuDoubleComplex cuM_SQRT1_2 = make_cuDoubleComplex(M_SQRT1_2, 0);
 	ai = cuCmul(cuM_SQRT1_2, cuCsub(v_iother, v_i));
@@ -115,11 +115,11 @@ __device__ static void qft_gpu_v5_single_state(int tgt, unsigned long i, int wid
 }
 
 
-// Kernel ini melakukan QFT single stage.
+// This kernel performs a single stage of the QFT.
 __global__ static void K_qft_gpu_v5_stage(int width, cuDoubleComplex *v, int tgt){
 	unsigned long N = (1ul << width);
 
-	// Membagi threads ke tiap state.
+    // Split threads over states.
 	unsigned long long bidx = blockIdx.y*gridDim.x + blockIdx.x;
 	unsigned long long i = bidx*blockDim.x + threadIdx.x;
 
@@ -136,15 +136,15 @@ __global__ static void K_qft_gpu_v5_stage(int width, cuDoubleComplex *v, int tgt
 
 
 
-// Kernel ini melakukan QFT single stage.
+// This kernel performs a single stage of the QFT.
 __global__ static void K_qft_gpu_v5_stage_0to8(int width, cuDoubleComplex *v){
 	unsigned long N = (1ul << width);
 
-	// Membagi threads ke tiap state.
+    // Split threads over states.
 	unsigned long long bidx = blockIdx.y*gridDim.x + blockIdx.x;
 	unsigned long long i = bidx*blockDim.x + threadIdx.x;
 
-	// salin ke dalam
+	// copy in
 	unsigned long block_base = bidx*blockDim.x;
 	__shared__ cuDoubleComplex sh_v[512]; // Note: hardcoded shared memory size
 	if (i < N) {
@@ -153,7 +153,7 @@ __global__ static void K_qft_gpu_v5_stage_0to8(int width, cuDoubleComplex *v){
 	__syncthreads();
 
 
-	// hitung
+    // calculate
 	for (int tgt = min(width-1,8); tgt >= 0; tgt--) {
 		unsigned long tgt_bit = (1ul << tgt);
 		if ( (i < N) && ((i & tgt_bit) != 0) ) {
@@ -162,14 +162,14 @@ __global__ static void K_qft_gpu_v5_stage_0to8(int width, cuDoubleComplex *v){
 		__syncthreads();
 	}
 
-	// salin ke luar
+	// copy out
 	if (i < N) {
 		v[i] = sh_v[threadIdx.x];
 	}
 }
 
 
-// Implementasi QFT gerbang demi gerbang menggunakan GPU.
+// Implement the QFT gate by gate using the GPU.
 void qft_gpu_v5_helper(int width, cuDoubleComplex *d_v, int threadsPerBlock){
 	unsigned long N = (1ul << width);
 
@@ -183,12 +183,12 @@ void qft_gpu_v5_helper(int width, cuDoubleComplex *d_v, int threadsPerBlock){
 	}
 	dim3 blocks(xblocks, yblocks);
 
-	// Utk tiap qubit...
+	// For each qubit...
 	int tgt;
 	for (tgt=width-1; tgt>=9; tgt--) {
 		K_qft_gpu_v5_stage<<<blocks, threadsPerBlock>>>(width, d_v, tgt);
-		CUT_CHECK_ERROR("K_qft_gpu_v5_stage gagal.");
+		CUT_CHECK_ERROR("K_qft_gpu_v5_stage failed.");
 	}
 	K_qft_gpu_v5_stage_0to8<<<blocks, threadsPerBlock>>>(width, d_v);
-	CUT_CHECK_ERROR("K_qft_gpu_v5_stage_0to8 gagal.");
+	CUT_CHECK_ERROR("K_qft_gpu_v5_stage_0to8 failed.");
 }

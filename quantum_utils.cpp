@@ -271,7 +271,7 @@ void qutil_print_qvec(int width, const cuDoubleComplex *v)
 
 
 /*
- * Calculates the L2-norm (sqrt(sum of squared norms of elemts)) of two vectors.
+ * Calculates the L2-norm (sqrt(sum of squared norms of elements)) of two vectors.
  */
 double qutil_l2norm_qvecs(int width, const cuDoubleComplex *v1, const cuDoubleComplex *v2)
 {

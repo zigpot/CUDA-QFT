@@ -8,20 +8,21 @@
 #define BLOCKSIZE 65535
 
 
-// Kalkulasi geser fase (phase shift) ditulis ulang secara algebraik untuk mengurangi
-// pemanggilan sinf dan cosf
+// The phase shift calculation has been algebraically rewritten to reduce the number of
+// sinf and cosf calls (at the expense of branching, +, *, and /).
 
 
-// memproses bit i dan i^(1ul << target)
-// Catatan: HANYA dipanggil dengan ((i & tgt_bit) == 1)
+// process bits i and i^(1ul << tgt)
+// Note: This should ONLY be called with ((i & tgt_bit) == 1)
 __device__ static void hadamard_gpu(unsigned long tgt, unsigned long i, int width, cuDoubleComplex *v){
 	unsigned long tgt_bit = (1ul << tgt);
 	if ((i & tgt_bit) == 0) {
-		return;
+        // This function should not have been called in this case.
+        return;
 	}
 
 	unsigned long i_other = i^tgt_bit;
-	cuDoubleComplex ai, aother; // koefisien i and (i^tgt_bit)
+	cuDoubleComplex ai, aother;    // coefficients i and (i^tgt_bit)
 	cuDoubleComplex v_i = v[i];
 	cuDoubleComplex v_iother = v[i_other];
 	cuDoubleComplex cuM_SQRT1_2 = make_cuDoubleComplex(M_SQRT1_2, 0);
@@ -33,8 +34,8 @@ __device__ static void hadamard_gpu(unsigned long tgt, unsigned long i, int widt
 
 
 
-// Mengaplikasikan geser fase dan transformasi Hadamard untuk qubit 'tgt' dan state 'i'.
-// Catatan: HANYA dipanggil dengan ((i & tgt_bit) == 1)
+// This applies the phase shifts and Hadamard transform for qubit 'tgt' and state 'i'.
+// Note: This should ONLY be called with ((i & tgt_bit) == 1)
 __device__ static void qft_gpu_v2_single_state(int tgt, unsigned long i, int width, cuDoubleComplex *v){
 	unsigned long phase_coef = 1ul;
 	unsigned long tgt_bit = (1ul << tgt);
@@ -61,11 +62,11 @@ __device__ static void qft_gpu_v2_single_state(int tgt, unsigned long i, int wid
 }
 
 
-// Kernel ini melakukan QFT single stage.
+// This kernel performs a single stage of the QFT.
 __global__ static void K_qft_gpu_v2_stage(int width, cuDoubleComplex *v, int tgt){
 	unsigned long N = (1ul << width);
 
-	// Membagi threads ke tiap state.
+    // Split threads over states.
 	unsigned long long bidx = blockIdx.y*gridDim.x + blockIdx.x;
 	unsigned long long i = bidx*blockDim.x + threadIdx.x;
 
@@ -80,7 +81,7 @@ __global__ static void K_qft_gpu_v2_stage(int width, cuDoubleComplex *v, int tgt
 }
 
 
-// Implementasi QFT gerbang demi gerbang menggunakan GPU.
+// Implement the QFT gate by gate using the GPU.
 void qft_gpu_v2_helper(int width, cuDoubleComplex *d_v, int threadsPerBlock){
 	unsigned long N = (1ul << width);
 

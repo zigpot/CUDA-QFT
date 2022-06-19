@@ -10,9 +10,11 @@ using std::min;
 #include <cuComplex.h>
 #include "qft_host.h"
 
-// implementasi dasar pada host (CPU, satu core)
 
-// memproses bit i dan i^(1ul << target)
+// basic host implementation
+
+
+// process bits i and i^(1ul << target)
 static void phase_shift_host(int control, int target, unsigned long i, cuDoubleComplex *v){
 	float phi = 1.0f * float(M_PI) / float(1ul << (control-target));
 	cuDoubleComplex phase = {cosf(phi), sinf(phi)};
@@ -21,7 +23,7 @@ static void phase_shift_host(int control, int target, unsigned long i, cuDoubleC
 	unsigned long ctl_bit = (1ul << control);
 
 	if ((i & tgt_bit) == 0) {
-		fprintf(stderr, "Logic error: phase_shift_host() tidak seharusnya dipanggil dengan '(i & tgt_bit) == 0'.\n");
+		fprintf(stderr, "Logic error: phase_shift_host() should not be called with '(i & tgt_bit) == 0'.\n");
 		exit(1);
 	}
 
@@ -42,7 +44,7 @@ static void hadamard_host(unsigned long target, unsigned long i, cuDoubleComplex
 	}
 
 	unsigned long i_other = i^tgt_bit;
-	cuDoubleComplex ai, aother;	// koefisien i dan (i^tgt_bit)
+	cuDoubleComplex ai, aother;	// coefficient i and (i^tgt_bit)
 	cuDoubleComplex v_i = v[i];
 	cuDoubleComplex v_iother = v[i_other];
 
@@ -58,12 +60,12 @@ static void qft_host_kernel(int tgt, unsigned long i, int width, cuDoubleComplex
 	unsigned long tgt_bit = (1ul << tgt);
 
 	if ((i & tgt_bit) == 0) {
-		fprintf(stderr, "Logic error: phase_shift_host() tidak seharusnya dipanggil dengan '(i & tgt_bit) == 0'.\n");
+        fprintf(stderr, "Logic error: qft_host_kernel() should not be called with '(i & tgt_bit) == 0'.\n");
 		exit(1);
 	}
 
-	// Catatan: Geser fase (dengan target sama) commute.
-	//for (int ctl=width-1; ctl>tgt; ctl--) {
+    // Note: Phase shifts (with the same target) commute.
+    //for (int ctl=width-1; ctl>tgt; ctl--) {
 	for (int ctl = tgt + 1; ctl < width; ctl++) {
 		phase_shift_host(ctl, tgt, i, v);
 	}
@@ -71,16 +73,16 @@ static void qft_host_kernel(int tgt, unsigned long i, int width, cuDoubleComplex
 }
 
 
-// Untuk tiap qubit, proses tiap state (sepasang koefisien) secara terpisah.
-// Strukturnya sedemikian rupa sehingga dapat diimplementasikan pada kernel GPU.
-// Dari situ, langkah selanjutnya adalah melakukan pengelompokan koefisien demi tercapainya
+// For each qubit, process each state (pair of coefficients) separately.
+// This is structured so that it could be implemented in a GPU kernel.
+// From here, the next step would be to perform coefficient grouping to achieve
 // memory coalescing.
 void qft_host(int width, cuDoubleComplex *v){
 	unsigned long N = (1ul << width);
 
-	// Untuk tiap qubit...
+    // For each qubit...
 	for (int tgt = width - 1; tgt >= 0; tgt--) {
-		// Untuk tiap qubit...
+        // For each state...
 		for (unsigned long i = 0; i < N; i++) {
 			unsigned long tgt_bit = (1ul << tgt);
 			if ((i & tgt_bit) != 0) {

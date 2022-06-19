@@ -16,11 +16,14 @@ void make_test_vector(int width, cuDoubleComplex **v){
 	unsigned long long N = (1ull << width);
 	*v = (cuDoubleComplex*)calloc(N, sizeof(cuDoubleComplex));
 	if (!*v) {
-		fprintf(stderr, "Error ketika mengalokasikan vektor (ukuran %llu).\n", N);
+		fprintf(stderr, "Error allocating memory for vector (size %llu).\n", N);
 		exit(1);
 	}
 
-	// Inisiasi vektor uji, tidak ternormalisasi.
+    // Initialize a test vector.
+    // This isn't normalized. In a normalized test vector, some elements
+    // would be very small. libquantum discards low-probability entries during its
+    // calculations. This creates "false" error between libquantum's output and ours.
 	unsigned long long i;
 	for (i = 0; i < N; i++) {
 		(*v)[i].x = 1.0f/float(i+1) + 1e-5f;
@@ -30,42 +33,42 @@ void make_test_vector(int width, cuDoubleComplex **v){
 
 
 int qft_test(int argc, char *argv[]){
-	// Dapatkan jumlah qubit dari pengguna, default = 8
+    // Get the number of qubits from the user, or use 8 as the default.
 	int width = 8;
 	if (argc >= 1) {
 		width = atoi(argv[0]);
 	}
-	// Dapatkan versi program GPU dari pengguna, default = terbaik
+    // Get the GPU version from the user or use the latest as the default.
 	QFT_versions version = QFT_BEST;
 	if (argc >= 2) {
 		version = (QFT_versions)atoi(argv[1]);
 	}
 	if (version == QFT_v0_HOST) {
-		printf("Menggunakan GPU-QFT versi: 0 (Implementasi satu core CPU)\n");
-	} else {
-		printf("Menggunakan GPU-QFT versi: %d\n", (int)version);
+        printf("Using GPU-QFT version: 0 (HOST reference implementation)\n");
+    } else {
+        printf("Using GPU-QFT version: %d\n", (int)version);
 	}
 
 	double vecsize = double(sizeof(cuDoubleComplex))*double(1ull<<width)/1024.0/1024.0;
-	printf("Lebar: %d qubits (%llu states, %f MB).\n", width, 1ull<<width, vecsize);
+    printf("Width: %d qubits (%llu states, %f MB).\n", width, 1ull<<width, vecsize);
 
-	Stopwatch s(false); // menghitung waktu CPU time
+	Stopwatch s(false); // measure CPU time
 
 
-	// Membuat vektor uji baru dan menyalinnya ke dalam vektor keluaran.
-	// Vektor keluaran disalin di tempat
+    // Make a new test vector and copy it into the output vector.
+    // (The output vector will be modified in-place.)
 	cuDoubleComplex *vin = NULL, *vout = NULL, *vtmp = NULL;
 	make_test_vector(width, &vin);
 	qutil_new_qvec(width, &vout);
 	quantum_reg qr = qutil_collapse_qr(width, vin);
 	qutil_copy_qvec(&vout, vin, width);
 
-	// Hitung waktu implementasi GPU.
+    // Time the GPU implementation.
 	double time_gpu = qft_gpu(width, vout, THREADS_PER_BLOCK, version);
 	printf("GPU time:   %f ms.\n", time_gpu*1000.0);
 	fflush(stdout);
 
-	// Hitung waktu implementasi libquantum.
+    // Time libquantum's implementation.
 	s.restart();
 	quantum_qft(width, &qr);
 	double time_libq = s.getElapsed();
@@ -75,21 +78,21 @@ int qft_test(int argc, char *argv[]){
 	// Bandingkan waktu
 	printf("Speedup:	%f x\n", time_libq/time_gpu);
 
-	// Bandingkan keluaran
-	printf("Mempersiapkan vektor-vektor untuk perbandingan...\n");
-	// Bersihkan memori dari qureg dan array yang tidak diperlukan lagi
+    // Compare the output vectors.
+    printf("Preparing vectors for comparison...\n");
+    // To save memory, we clean up arrays and quregs we don't need.
 	qutil_destroy_qvec(&vin);
-	// Ekspansi vektor libquantum untuk perbandingan.
+    // Expand libquantum's vector for comparison.
 	qutil_expand_qr(qr, &vtmp);
 	quantum_delete_qureg(&qr);
-	// Collapse dan re-expand vektor GPU.
-	// libquantum secara otomatis menghapus keadaan "kecil", bila kita tidak melakukan hal serupa,
-	// maka hasil perbandingan akan berbeda
+    // Collapse and re-expand the GPU vector.
+    // libquantum deletes "small" states automatically. If we don't do the same,
+    // then the comparison will be skewed.
 	quantum_reg qr_tmp = qutil_collapse_qr(width, vout);
 	qutil_expand_qr(qr_tmp, &vout);
 	printf("l2norm = %f\n", qutil_l2norm_qvecs(width, vout, vtmp));
 
-	// Bersihkan vektor-vektor yang tersisa
+    // Clean up the remaining vectors.
 	qutil_destroy_qvec(&vout);
 	qutil_destroy_qvec(&vtmp);
 
@@ -98,9 +101,9 @@ int qft_test(int argc, char *argv[]){
 
 
 static void printUsage(){
-	printf("Penggunaan: qft B [V]\n");
-	printf("	menguji algoritme QFT dengan qubit sejumlah B serta versi V daripada algoritme GPU.\n");
-	printf("	V haruslah dari 0 hingga 6. Secara default, V adalah %d.\n", (int)QFT_BEST);
+    printf("Usage: qft B [V]\n");
+    printf("    tests the QFT algorithm using B qubits and version V of the GPU algorithm.\n");
+    printf("    V should be from 0 to 6. The default value is %d.\n", (int)QFT_BEST);
 }
 
 int main(int argc, char *argv[]){

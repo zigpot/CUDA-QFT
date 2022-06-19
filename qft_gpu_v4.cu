@@ -8,12 +8,12 @@
 #define BLOCKS 32768
 
 
-// Seperti v3, tetapi menggabungkan phase shift dan gerbang hadamard, 
-// sehingga butuh hanya satu read dan write dari/menuju memori global.
+// Like v3, but by combining the phase shift and hadamard gates, we can remove
+// one read and write to/from global memory.
 
 
-// Mengaplikasikan geser fase dan transformasi Hadamard untuk qubit 'tgt' dan state 'i'.
-// Catatan: HANYA dipanggil dengan ((i & tgt_bit) == 1)
+// This applies the phase shifts and Hadamard transform for qubit 'tgt' and state 'i'.
+// Note: This should ONLY be called with ((i & tgt_bit) == 1)
 __device__ static void qft_gpu_v4_single_state(int tgt, unsigned long i, int width,  cuDoubleComplex *v){
 	unsigned long phase_coef = 1ul;
 	unsigned long tgt_bit = (1ul << tgt);
@@ -21,6 +21,7 @@ __device__ static void qft_gpu_v4_single_state(int tgt, unsigned long i, int wid
 	unsigned long normal = (1ul << (width - tgt - 1));
 
 	if ((i & tgt_bit) == 0) {
+        // This function should not have been called in this case.
 		return;
 	}
 
@@ -46,7 +47,7 @@ __device__ static void qft_gpu_v4_single_state(int tgt, unsigned long i, int wid
 	cuDoubleComplex v_iother = v[i_other];
 	v_i = cuCmul(v_i, phase);
 
-	cuDoubleComplex ai, aother;	// koefisien i dan (i^tgt_bit)
+	cuDoubleComplex ai, aother;    // coefficients i and (i^tgt_bit)
 
 	cuDoubleComplex cuM_SQRT1_2 = make_cuDoubleComplex(M_SQRT1_2, 0);
 	ai = cuCmul(cuM_SQRT1_2, cuCsub(v_iother, v_i));
@@ -57,11 +58,11 @@ __device__ static void qft_gpu_v4_single_state(int tgt, unsigned long i, int wid
 }
 
 
-// Kernel ini melakukan QFT single stage.
+// This kernel performs a single stage of the QFT.
 __global__ static void K_qft_gpu_v4_stage(int width, cuDoubleComplex *v, int tgt){
 	unsigned long N = (1ul << width);
 
-	// Membagi threads ke tiap state.
+    // Split threads over states.
 	unsigned long long bidx = blockIdx.y*gridDim.x + blockIdx.x;
 	unsigned long long i = bidx*blockDim.x + threadIdx.x;
 
@@ -77,7 +78,7 @@ __global__ static void K_qft_gpu_v4_stage(int width, cuDoubleComplex *v, int tgt
 }
 
 
-// Implementasi QFT gerbang demi gerbang menggunakan GPU.
+// Implement the QFT gate by gate using the GPU.
 void qft_gpu_v4_helper(int width, cuDoubleComplex *d_v, int threadsPerBlock){
 	unsigned long N = (1ul << width);
 
@@ -91,10 +92,10 @@ void qft_gpu_v4_helper(int width, cuDoubleComplex *d_v, int threadsPerBlock){
 	}
 	dim3 blocks(xblocks, yblocks);
 
-	// Utk tiap qubit...
+    // For each qubit...
 	int tgt;
 	for (tgt = width - 1; tgt >= 0; tgt--) {
 		K_qft_gpu_v4_stage<<<blocks, threadsPerBlock>>>(width, d_v, tgt);
-		CUT_CHECK_ERROR("K_qft_gpu_v4_stage gagal.");
+		CUT_CHECK_ERROR("K_qft_gpu_v4_stage failed.");
 	}
 }
