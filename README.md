@@ -8,6 +8,7 @@ CUDA 10.0.0 or later
 
 ## Compilation:
 Simply run makefile:
+
 	make
 	
 ## Usage:
