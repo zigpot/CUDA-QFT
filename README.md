@@ -7,12 +7,9 @@ CUDA 10.0.0 or later
 [libquantum 1.1.1](http://www.libquantum.de/files/libquantum-1.1.1.tar.gz) (don't forget to link the newly installed library, e.g. sudo ldconfig)
 
 ## Compilation:
-	nvcc -o program.out -Xcompiler -fopenmp files here -lquantum
-For instance:
-
-	nvcc -o qft -Xcompiler -fopenmp qft_gpu_launch.cu qft_gpu_v3.cu qft_gpu_v6.cu qft_gpu_v2.cu qft_gpu_v5.cu quantum_utils.cpp qft.cpp qft_gpu_v1.cu qft_gpu_v4.cu qft_host.cpp Stopwatch.cpp -lquantum
-
-Unfortunately, this is the only way to compile while the makefile is in progress.
+Simply run makefile:
+	make
+	
 ## Usage:
 	./qft B [V]
 B = Number of qubits
