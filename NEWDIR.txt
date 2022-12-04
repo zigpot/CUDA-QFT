@@ -1,2 +1,34 @@
-This serves as a new directory standard.
+refer to: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1204r0.html
 
+CUDA-QFT/
+├─ include/
+│  ├─ cutil.h
+├─ lib/
+│  ├─ Stopwatch.cpp
+│  ├─ Stopwatch.h
+│  ├─ qft_gpu_launch.cu
+│  ├─ qft_gpu_launch.h
+│  ├─ qft_host.cpp
+│  ├─ qft_host.h
+│  ├─ quantum_utils.cpp
+│  ├─ quantum_utils.h
+│  ├─ qft_gpu
+│     ├─ qft_gpu_v1.cu
+│     ├─ qft_gpu_v1.h
+│     ├─ qft_gpu_v2.cu
+│     ├─ qft_gpu_v2.h
+│     ├─ qft_gpu_v3.cu
+│     ├─ qft_gpu_v3.h
+│     ├─ qft_gpu_v4.cu
+│     ├─ qft_gpu_v4.h
+│     ├─ qft_gpu_v5.cu
+│     ├─ qft_gpu_v5.h
+│     ├─ qft_gpu_v6.cu
+│     ├─ qft_gpu_v6.h
+├─ src/
+│  ├─ qft.cpp
+├─ .gitignore
+├─ TODO.md
+├─ README.md
+├─ makefile
+├─ NEWDIR.txt
