@@ -18,4 +18,4 @@ B = Number of qubits
 V = version of the GPU algorithm
 
 ## Contact Me:
-for more info please contact: fariz.adnan.w[at]mail.ugm.ac.id
+for more info please contact: farizmade[at]yahoo.com
