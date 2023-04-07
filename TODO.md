@@ -12,6 +12,7 @@
 - [ ] CMAKE integration if possible @zigp0t 2022-06-19
 - [ ] Unit Testing @zigp0t 2023-04-07
 - [ ] Documentation (Doxygen) @zigp0t 2023-04-07
+- [ ] Installation guide @zigp0t 2023-04-07
 
 
 ### Completed ✓
